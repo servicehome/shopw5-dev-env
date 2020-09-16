@@ -21,6 +21,9 @@ DOWNLOAD_URL="https://www.shopware.com/en/Download/redirect/version/sw5/file/ins
 ##########################################################
 ##########################################################
 
+### HELPER
+##########################################################
+
 function guaranteeDirectory() {
   if [ ! -d "$1" ]; then
     mkdir -p "$1"
@@ -44,6 +47,17 @@ function linkExists() {
     return 1
   fi
 }
+
+function setColor() {
+  echo "\e[$1m"
+}
+
+function resetColorsToDefault() {
+  setColor 0
+}
+
+### SETUP FUNCTIONS
+##########################################################
 
 function cloneShopwareRepo() {
   guaranteeDirectory "$GIT_SHOPDIR" &&
@@ -116,12 +130,10 @@ function setupHomestead() {
   fi
 }
 
-function setColor() {
-  echo "\e[$1m"
-}
-
-function resetColorsToDefault() {
-  setColor 0
+function updateAfterScript() {
+  cat "$BASE/homestead-after-script.template" |
+    awk '{ gsub(/!!!PHP_VERSION!!!/, "'$PHP_VERSION'") }1' |
+    awk '{ gsub(/!!!DOMAIN!!!/, "'$SHOP_DOMAIN_NAME'") }1' >>"$SHOPDIR/after.sh"
 }
 
 function printUsage() {
@@ -141,4 +153,5 @@ cloneShopwareRepo &&
   setPermissions &&
   composerRequireHomestead &&
   setupHomestead &&
+  updateAfterScript &&
   printUsage
